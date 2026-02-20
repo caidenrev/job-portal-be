@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  role       Role     @default(APPLICANT)
+  phone      String?
+  bio        String?  @db.Text
+  experience String?  @db.Text
+  skills     String?  @db.Text
+  savedCvUrl String?
+  company    Company?
+  applications Application[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum Role {
+  APPLICANT
+  HR
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int      @unique
+  name        String
+  logoUrl     String?
+  description String?
+  location    String?
+  jobs        Job[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Job {
+  id           Int      @id @default(autoincrement())
+  company      Company  @relation(fields: [companyId], references: [id])
+  companyId    Int
+  title        String
+  description  String
+  requirements String
+  type         String
+  status       JobStatus @default(OPEN)
+  applications Application[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+model Application {
+  id          Int      @id @default(autoincrement())
+  job         Job      @relation(fields: [jobId], references: [id])
+  jobId       Int
+  applicant   User     @relation(fields: [applicantId], references: [id])
+  applicantId Int
+  cvUrl       String
+  status      AppStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum AppStatus {
+  PENDING
+  REVIEWED
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+}
