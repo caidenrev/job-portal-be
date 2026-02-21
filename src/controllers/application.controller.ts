@@ -34,7 +34,25 @@ export const updateApplicationStatus = async (req: Request, res: Response) => {
 
         const updatedApplication = await prisma.application.update({
             where: { id: parseInt(id) },
-            data: { status }
+            data: { status },
+            include: { job: { include: { company: true } } }
+        });
+
+        // Trigger Notification to Applicant
+        let notifMsg = `Status lamaranmu diperbarui menjadi ${status}.`;
+        if (status === 'REVIEWED') notifMsg = `Kabar baik! Lamaranmu untuk posisi ${updatedApplication.job.title} di ${updatedApplication.job.company?.name || 'Perusahaan'} sedang ditinjau HR.`;
+        if (status === 'INTERVIEW') notifMsg = `Selamat! Kamu terpilih untuk lanjut ke tahap Wawancara untuk posisi ${updatedApplication.job.title} di ${updatedApplication.job.company?.name || 'Perusahaan'}.`;
+        if (status === 'ACCEPTED') notifMsg = `Luar biasa! Kamu dinyatakan Lolos untuk posisi ${updatedApplication.job.title} di ${updatedApplication.job.company?.name || 'Perusahaan'}.`;
+        if (status === 'REJECTED') notifMsg = `Maaf, lamaranmu untuk posisi ${updatedApplication.job.title} di ${updatedApplication.job.company?.name || 'Perusahaan'} belum sesuai dengan kualifikasi saat ini.`;
+
+        await prisma.notification.create({
+            data: {
+                userId: updatedApplication.applicantId,
+                title: "Pembaruan Status Lamaran",
+                message: notifMsg,
+                type: "APPLICATION_STATUS",
+                relatedId: updatedApplication.id
+            }
         });
 
         res.json({ message: 'Status updated successfully', application: updatedApplication });

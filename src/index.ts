@@ -6,6 +6,7 @@ import jobRoutes from './routes/job.routes';
 import applicationRoutes from './routes/application.routes';
 import applyRoutes from './routes/apply.routes';
 import userRoutes from './routes/user.routes';
+import notificationRoutes from "./routes/notification.routes";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/apply', applyRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: 'Welcome to JobPortal API v1' });

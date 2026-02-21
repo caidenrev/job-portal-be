@@ -21,6 +21,7 @@ model User {
   profileImageUrl String?
   company    Company?
   applications Application[]
+  notifications Notification[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -80,4 +81,17 @@ enum AppStatus {
   INTERVIEW
   ACCEPTED
   REJECTED
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  title     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  type      String   // e.g., 'APPLICATION_STATUS', 'SYSTEM_ALERT'
+  relatedId Int?     // e.g., Application ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
