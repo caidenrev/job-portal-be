@@ -9,7 +9,18 @@ export const getProfile = async (req: Request, res: Response) => {
         const userId = (req as any).user.id;
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, name: true, email: true, role: true, phone: true, bio: true, experience: true, skills: true, savedCvUrl: true }
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                bio: true,
+                experience: true,
+                skills: true,
+                savedCvUrl: true,
+                company: true // Always include, Prisma will return null if APPLICANT
+            }
         });
 
         if (!user) {

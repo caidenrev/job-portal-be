@@ -52,24 +52,12 @@ export const createJob = async (req: Request, res: Response) => {
         const { title, description, requirements, type, location } = req.body;
         const userId = (req as any).user.id;
 
-        // Auto-create or get Company profile for this HR user
-        let company = await prisma.company.findUnique({ where: { userId } });
+        // Get Company profile for this HR user
+        const company = await prisma.company.findUnique({ where: { userId } });
 
         if (!company) {
-            const user = await prisma.user.findUnique({ where: { id: userId } });
-            company = await prisma.company.create({
-                data: {
-                    userId,
-                    name: `Perusahaan ${user?.name || "HR"}`,
-                    location: location || "Indonesia"
-                }
-            });
-        } else if (location && company.location !== location) {
-            // Update company location based on latest job
-            company = await prisma.company.update({
-                where: { id: company.id },
-                data: { location }
-            });
+            // Because company is registered along with User now, if it doesn't exist it is an error
+            return res.status(400).json({ message: 'HR Company Profile not found.' });
         }
 
         const newJob = await prisma.job.create({

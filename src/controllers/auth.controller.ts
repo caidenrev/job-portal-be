@@ -18,20 +18,45 @@ export const register = async (req: Request, res: Response) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user
-        const newUser = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: role || 'APPLICANT',
-                phone,
-            },
+        // Use transaction to ensure both User and Company (if HR) are created safely
+        const newUser = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    name,
+                    email,
+                    password: hashedPassword,
+                    role: role || 'APPLICANT',
+                    phone,
+                },
+            });
+
+            if (role === 'HR') {
+                const { companyName, companyLocation, companyDescription } = req.body;
+                if (!companyName) {
+                    throw new Error("Company Name is required for HR registration");
+                }
+                await tx.company.create({
+                    data: {
+                        userId: user.id,
+                        name: companyName,
+                        location: companyLocation || "Indonesia",
+                        description: companyDescription || null
+                    }
+                });
+            }
+
+            return user;
         });
 
         res.status(201).json({ message: 'User registered successfully', user: { id: newUser.id, email: newUser.email, role: newUser.role } });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Registration Error:', error);
+
+        // Handle specific transaction error gracefully
+        if (error.message === "Company Name is required for HR registration") {
+            return res.status(400).json({ message: error.message });
+        }
+
         res.status(500).json({ message: 'Internal server error' });
     }
 };
