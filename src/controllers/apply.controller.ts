@@ -19,7 +19,6 @@ export const uploadCV = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.S3_BUCKET_NAME as string,
-    acl: 'public-read',
     metadata: function (req: Request, file: Express.Multer.File, cb: (error: any, metadata?: any) => void) {
       cb(null, { fieldName: file.fieldname });
     },
@@ -33,7 +32,6 @@ export const uploadAvatar = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.S3_BUCKET_NAME as string,
-    acl: 'public-read',
     metadata: function (req: Request, file: Express.Multer.File, cb: (error: any, metadata?: any) => void) {
       cb(null, { fieldName: file.fieldname });
     },
@@ -42,7 +40,7 @@ export const uploadAvatar = multer({
       if (!file.mimetype.startsWith('image/')) {
         return cb(new Error('File is not an image'));
       }
-      cb(null, `avatars/${Date.now().toString()}-${file.originalname.replace(/\\s+/g, '-')}`);
+      cb(null, `avatars/${Date.now().toString()}-${file.originalname.replace(/\s+/g, '-')}`);
     },
   }),
 });
