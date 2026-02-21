@@ -22,6 +22,9 @@ model User {
   company    Company?
   applications Application[]
   notifications Notification[]
+  conversationsAsHr Conversation[] @relation("HrConversations")
+  conversationsAsApplicant Conversation[] @relation("ApplicantConversations")
+  messages   Message[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -54,6 +57,7 @@ model Job {
   type         String
   status       JobStatus @default(OPEN)
   applications Application[]
+  conversations Conversation[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -73,6 +77,32 @@ model Application {
   status      AppStatus @default(PENDING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Conversation {
+  id          Int       @id @default(autoincrement())
+  jobId       Int
+  job         Job       @relation(fields: [jobId], references: [id])
+  hrId        Int
+  hr          User      @relation("HrConversations", fields: [hrId], references: [id])
+  applicantId Int
+  applicant   User      @relation("ApplicantConversations", fields: [applicantId], references: [id])
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([jobId, hrId, applicantId])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       Int
+  sender         User         @relation(fields: [senderId], references: [id])
+  content        String       @db.Text
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 }
 
 enum AppStatus {
