@@ -6,10 +6,11 @@ const router = Router();
 
 // Publicly accessible for applicants
 router.get('/', getJobs);
-router.get('/:id', getJobById);
-
 // Protected route to get HR's own jobs
 router.get('/me', verifyToken, getMyJobs);
+
+// Publicly accessible for applicants
+router.get('/:id', getJobById);
 
 // Protected route (Only logged-in HR can create jobs ideally)
 router.post('/', verifyToken, createJob);
