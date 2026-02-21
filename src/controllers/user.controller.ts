@@ -90,6 +90,16 @@ export const updateProfile = async (req: Request, res: Response) => {
                             where: { userId },
                             data: companyDataToUpdate
                         });
+                    } else {
+                        // Jika belum punya (backward compatibility untuk akun HR lama)
+                        await tx.company.create({
+                            data: {
+                                userId,
+                                name: companyName || `Perusahaan ${tempUser.name}`,
+                                location: companyLocation || "Indonesia",
+                                description: companyDescription || null
+                            }
+                        });
                     }
                 }
             }
