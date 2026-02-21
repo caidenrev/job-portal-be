@@ -43,3 +43,32 @@ export const updateApplicationStatus = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// Get personal applications for logged-in Applicant
+export const getMyApplications = async (req: Request, res: Response) => {
+    try {
+        const applicantId = (req as any).user.id;
+
+        const myApplications = await prisma.application.findMany({
+            where: { applicantId: applicantId },
+            include: {
+                job: {
+                    select: {
+                        title: true,
+                        company: {
+                            select: { name: true }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        res.json(myApplications);
+    } catch (error) {
+        console.error('Error fetching my applications:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
