@@ -64,10 +64,37 @@ export const updateProfile = async (req: Request, res: Response) => {
             dataToUpdate.password = await bcrypt.hash(newPassword, 10);
         }
 
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: dataToUpdate,
-            select: { id: true, name: true, email: true, role: true, phone: true, bio: true, experience: true, skills: true, savedCvUrl: true }
+        // Jalankan transaction jika update melibatkan User dan Company (untuk HR)
+        const updatedUser = await prisma.$transaction(async (tx) => {
+            const tempUser = await tx.user.update({
+                where: { id: userId },
+                data: dataToUpdate,
+                select: { id: true, name: true, email: true, role: true, phone: true, bio: true, experience: true, skills: true, savedCvUrl: true }
+            });
+
+            // Update company info jika role adalah HR
+            if (user.role === 'HR') {
+                const { companyName, companyLocation, companyDescription } = req.body;
+
+                // Setidaknya update yang dikirim tidak undefined
+                if (companyName !== undefined || companyLocation !== undefined || companyDescription !== undefined) {
+                    const companyDataToUpdate: any = {};
+                    if (companyName) companyDataToUpdate.name = companyName;
+                    if (companyLocation !== undefined) companyDataToUpdate.location = companyLocation;
+                    if (companyDescription !== undefined) companyDataToUpdate.description = companyDescription;
+
+                    // Pastikan HR benar-benar sudah punya company
+                    const existingCompany = await tx.company.findUnique({ where: { userId } });
+                    if (existingCompany) {
+                        await tx.company.update({
+                            where: { userId },
+                            data: companyDataToUpdate
+                        });
+                    }
+                }
+            }
+
+            return tempUser;
         });
 
         res.json({ message: 'Profile updated successfully', user: updatedUser });
