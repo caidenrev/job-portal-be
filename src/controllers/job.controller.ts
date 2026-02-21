@@ -88,3 +88,40 @@ export const createJob = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// Get applications for a specific job (For HR only)
+export const getJobApplications = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.id;
+        const jobId = parseInt(req.params.jobId);
+
+        // Verify HR owns this job
+        const company = await prisma.company.findUnique({ where: { userId } });
+        if (!company) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        const job = await prisma.job.findFirst({
+            where: { id: jobId, companyId: company.id }
+        });
+
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        const applications = await prisma.application.findMany({
+            where: { jobId },
+            include: {
+                applicant: {
+                    select: { id: true, name: true, email: true, phone: true, experience: true, skills: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(applications);
+    } catch (error) {
+        console.error('Error fetching applications:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
