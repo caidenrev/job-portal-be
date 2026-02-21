@@ -20,6 +20,34 @@ export const getJobs = async (req: Request, res: Response) => {
     }
 };
 
+// Get a single job by ID
+export const getJobById = async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid job ID format' });
+        }
+
+        const job = await prisma.job.findUnique({
+            where: { id },
+            include: {
+                company: {
+                    select: { name: true, location: true, description: true, logoUrl: true }
+                }
+            }
+        });
+
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        res.json(job);
+    } catch (error) {
+        console.error('Error fetching job details:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 // Get HR's own jobs
 export const getMyJobs = async (req: Request, res: Response) => {
     try {

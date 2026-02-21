@@ -18,6 +18,7 @@ model User {
   experience String?  @db.Text
   skills     String?  @db.Text
   savedCvUrl String?
+  profileImageUrl String?
   company    Company?
   applications Application[]
   createdAt  DateTime @default(now())

@@ -29,6 +29,24 @@ export const uploadCV = multer({
   }),
 });
 
+export const uploadAvatar = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.S3_BUCKET_NAME as string,
+    acl: 'public-read',
+    metadata: function (req: Request, file: Express.Multer.File, cb: (error: any, metadata?: any) => void) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req: Request, file: Express.Multer.File, cb: (error: any, key?: string) => void) {
+      // Validate image
+      if (!file.mimetype.startsWith('image/')) {
+        return cb(new Error('File is not an image'));
+      }
+      cb(null, `avatars/${Date.now().toString()}-${file.originalname.replace(/\\s+/g, '-')}`);
+    },
+  }),
+});
+
 // Apply to a job
 export const applyJob = async (req: Request, res: Response) => {
   try {

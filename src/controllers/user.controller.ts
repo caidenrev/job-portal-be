@@ -19,6 +19,7 @@ export const getProfile = async (req: Request, res: Response) => {
                 experience: true,
                 skills: true,
                 savedCvUrl: true,
+                profileImageUrl: true,
                 company: true // Always include, Prisma will return null if APPLICANT
             }
         });
@@ -47,9 +48,15 @@ export const updateProfile = async (req: Request, res: Response) => {
         const dataToUpdate: any = { name, phone, bio, experience, skills };
 
         // Cek jika ada file CV yang diunggah
-        const uploadedCvUrl = (req.file as any)?.location;
+        const uploadedCvUrl = (req.files as any)?.cv?.[0]?.location || (req.file as any)?.location;
         if (uploadedCvUrl) {
             dataToUpdate.savedCvUrl = uploadedCvUrl;
+        }
+
+        // Cek jika ada file Avatar yang diunggah
+        const uploadedAvatarUrl = (req.files as any)?.avatar?.[0]?.location;
+        if (uploadedAvatarUrl) {
+            dataToUpdate.profileImageUrl = uploadedAvatarUrl;
         }
 
         // Handle password update
@@ -69,7 +76,7 @@ export const updateProfile = async (req: Request, res: Response) => {
             const tempUser = await tx.user.update({
                 where: { id: userId },
                 data: dataToUpdate,
-                select: { id: true, name: true, email: true, role: true, phone: true, bio: true, experience: true, skills: true, savedCvUrl: true }
+                select: { id: true, name: true, email: true, role: true, phone: true, bio: true, experience: true, skills: true, savedCvUrl: true, profileImageUrl: true }
             });
 
             // Update company info jika role adalah HR

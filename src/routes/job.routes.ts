@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { getJobs, createJob, getMyJobs, getJobApplications } from '../controllers/job.controller';
+import { getJobs, getJobById, createJob, getMyJobs, getJobApplications } from '../controllers/job.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
 
 const router = Router();
 
 // Publicly accessible for applicants
 router.get('/', getJobs);
+router.get('/:id', getJobById);
 
 // Protected route to get HR's own jobs
 router.get('/me', verifyToken, getMyJobs);
