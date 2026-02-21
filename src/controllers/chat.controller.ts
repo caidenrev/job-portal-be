@@ -8,12 +8,20 @@ export const getOrCreateConversation = async (req: Request, res: Response) => {
     try {
         const { hrId, applicantId, jobId } = req.body;
 
+        const parsedJobId = parseInt(jobId);
+        const parsedHrId = parseInt(hrId);
+        const parsedApplicantId = parseInt(applicantId);
+
+        if (isNaN(parsedJobId) || isNaN(parsedHrId) || isNaN(parsedApplicantId)) {
+            return res.status(400).json({ message: "Invalid payload: jobId, hrId, and applicantId must be valid numbers" });
+        }
+
         let conversation = await prisma.conversation.findUnique({
             where: {
                 jobId_hrId_applicantId: {
-                    jobId: parseInt(jobId),
-                    hrId: parseInt(hrId),
-                    applicantId: parseInt(applicantId)
+                    jobId: parsedJobId,
+                    hrId: parsedHrId,
+                    applicantId: parsedApplicantId
                 }
             }
         });
@@ -21,9 +29,9 @@ export const getOrCreateConversation = async (req: Request, res: Response) => {
         if (!conversation) {
             conversation = await prisma.conversation.create({
                 data: {
-                    jobId: parseInt(jobId),
-                    hrId: parseInt(hrId),
-                    applicantId: parseInt(applicantId)
+                    jobId: parsedJobId,
+                    hrId: parsedHrId,
+                    applicantId: parsedApplicantId
                 }
             });
         }
