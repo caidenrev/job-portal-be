@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
@@ -25,6 +25,12 @@ app.use('/api/apply', applyRoutes);
 
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: 'Welcome to JobPortal API v1' });
+});
+
+// Global Error Handler untuk menangkap Error Upload / AWS S3 sehingga menjadi JSON yang readable
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('Global error:', err.message);
+    res.status(500).json({ message: err.message || 'Internal Server Error' });
 });
 
 app.listen(port, () => {
