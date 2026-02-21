@@ -11,7 +11,16 @@ export const getCandidates = async (req: Request, res: Response) => {
         const applications = await prisma.application.findMany({
             include: {
                 applicant: {
-                    select: { name: true, email: true, phone: true }
+                    select: {
+                        name: true,
+                        email: true,
+                        phone: true,
+                        bio: true,
+                        experience: true,
+                        skills: true,
+                        profileImageUrl: true,
+                        savedCvUrl: true
+                    }
                 },
                 job: {
                     select: { title: true }
